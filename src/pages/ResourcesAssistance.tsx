@@ -14,9 +14,9 @@ const additionalResources = [
     url: "https://www.consumerfinance.gov/owning-a-home/",
   },
   {
-    title: "NC Housing Finance Agency",
-    description: "State programs and resources for homebuyers",
-    url: "https://www.nchfa.com/",
+    title: "Federal Housing Finance Agency",
+    description: "Federal programs and resources for homebuyers",
+    url: "https://www.fhfa.gov/",
   },
 ];
 
@@ -28,7 +28,7 @@ export default function ResourcesAssistance() {
           <div>
             <h1 className="text-4xl font-bold mb-4">Resources and Assistance Programs</h1>
             <p className="text-lg text-muted-foreground">
-              Discover financial assistance programs and helpful resources for first-time homebuyers in North Carolina.
+              Discover financial assistance programs and helpful resources for first-time homebuyers.
             </p>
           </div>
 

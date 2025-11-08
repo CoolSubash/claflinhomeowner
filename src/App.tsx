@@ -12,6 +12,10 @@ import ResourcesAssistance from "./pages/ResourcesAssistance";
 import KnowledgeCenter from "./pages/KnowledgeCenter";
 import AboutUs from "./pages/AboutUs";
 import NotFound from "./pages/NotFound";
+import Signup from "./pages/Signup";
+import { AuthProvider } from "./context/AuthContext";
+import Login from "./pages/Login";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 function AppContent() {
   const location = useLocation();
@@ -22,13 +26,24 @@ function AppContent() {
       {showNavigation && <Navigation />}
       <Routes>
         <Route path="/" element={<Welcome />} />
-        <Route path="/dashboard" element={<HomeCoach />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <HomeCoach />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/first-steps" element={<FirstSteps />} />
         <Route path="/financial-readiness" element={<FinancialReadiness />} />
         <Route path="/resources" element={<ResourcesAssistance />} />
         <Route path="/knowledge-center" element={<KnowledgeCenter />} />
         <Route path="/about" element={<AboutUs />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
@@ -43,7 +58,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppContent />
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
