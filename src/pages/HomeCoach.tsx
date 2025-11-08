@@ -383,7 +383,7 @@ What would you like to know?`,
               <Card className="p-6 md:p-8 bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20">
                 <div className="text-center space-y-4">
                   <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                    Welcome to SafePlace! 👋
+                    Welcome to HomeReady! 👋
                   </h2>
                   <p className="text-base md:text-lg text-muted-foreground">
                     Let's start a conversation about your homebuying journey. 
@@ -705,8 +705,8 @@ What would you like to know?`,
                       </div>
                     </div>
                     <p className="text-muted-foreground mb-6">
-                      Thank you for choosing SafePlace! We hope we've helped make your homebuying journey smoother. 
-                      Feel free to share SafePlace with anyone looking to buy a home!
+                      Thank you for choosing HomeReady! We hope we've helped make your homebuying journey smoother. 
+                      Feel free to share HomeReady with anyone looking to buy a home!
                     </p>
                   </Card>
                 ) : (
@@ -826,7 +826,7 @@ What would you like to know?`,
         </SheetTrigger>
         <SheetContent side="left" className="w-full sm:w-[440px] md:w-[540px] p-0 flex flex-col">
           <SheetHeader className="px-4 md:px-6 py-3 md:py-4 border-b border-border">
-            <SheetTitle className="text-left text-base md:text-lg">Haven - SafePlace Coach</SheetTitle>
+            <SheetTitle className="text-left text-base md:text-lg">Haven - HomeReady Coach</SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-hidden">
             <ChatInterface

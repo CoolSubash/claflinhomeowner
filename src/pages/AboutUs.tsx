@@ -11,17 +11,19 @@ const values = [
   {
     icon: Target,
     title: "Equity & Access",
-    description: "We're committed to closing the homeownership gap and ensuring everyone has a fair shot at the American Dream.",
+    description:
+      "We're committed to closing the homeownership gap and ensuring everyone has a fair shot at the American Dream.",
   },
   {
     icon: Users,
     title: "Community Focused",
-    description: "We partner with local counselors and lenders who understand the unique needs of Raleigh homebuyers.",
+    description: "We partner with local counselors and lenders who understand the unique needs of homebuyers.",
   },
   {
     icon: Shield,
     title: "Privacy & Security",
-    description: "Your data is protected with bank-level encryption. We only collect what's needed and you control your information.",
+    description:
+      "Your data is protected with bank-level encryption. We only collect what's needed and you control your information.",
   },
 ];
 
@@ -31,9 +33,9 @@ export default function AboutUs() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-12">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold">About SafePlace</h1>
+            <h1 className="text-4xl font-bold">About HomeReady</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Your trusted guide on the journey to homeownership in Raleigh, North Carolina.
+              Your trusted guide on the journey to homeownership.
             </p>
           </div>
 
@@ -41,20 +43,20 @@ export default function AboutUs() {
             <Card className="p-8">
               <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                SafePlace was created to address a critical gap: too many qualified first-time homebuyers, 
-                especially in Black and underserved communities, don't know where to start or feel overwhelmed 
-                by the complex homebuying process.
+                HomeReady was created to address a critical gap: too many qualified first-time homebuyers, especially in
+                Black and underserved communities, don't know where to start or feel overwhelmed by the complex
+                homebuying process.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                We believe that with the right guidance, transparent information, and access to assistance programs, 
+                We believe that with the right guidance, transparent information, and access to assistance programs,
                 homeownership should be within reach for everyone who's ready and willing to take the journey.
               </p>
             </Card>
-            
+
             <div>
-              <img 
-                src={familyExpecting} 
-                alt="Growing Black family planning for their future home" 
+              <img
+                src={familyExpecting}
+                alt="Growing Black family planning for their future home"
                 className="rounded-xl shadow-lg w-full object-cover aspect-square"
               />
             </div>

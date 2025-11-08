@@ -37,7 +37,7 @@ export function CompletionSurveyCard({ onSubmit }: CompletionSurveyCardProps) {
           How Did We Do?
         </h3>
         <p className="text-muted-foreground">
-          Your feedback helps us improve SafePlace for future homebuyers
+          Your feedback helps us improve HomeReady for future homebuyers
         </p>
       </div>
 
@@ -102,7 +102,7 @@ export function CompletionSurveyCard({ onSubmit }: CompletionSurveyCardProps) {
               </p>
               <p className="text-xs text-muted-foreground">
                 We'd love to help your friends and family achieve their homeownership dreams too! 
-                Feel free to share SafePlace with anyone looking to buy a home.
+                Feel free to share HomeReady with anyone looking to buy a home.
               </p>
             </div>
           </div>
