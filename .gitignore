@@ -58,5 +58,12 @@ docker-compose.override.yml
 *.log
 logs/
 
+# --- Local planning prompts (not project documentation - see docs/) ---
+claudeprompt/
+
+# --- Generated documentation PDF ---
+docs/_build/
+docs/*.pdf
+
 # Never ignore project instructions
 !CLAUDE.md

@@ -1,0 +1,12 @@
+{
+  "name": "homeready-ai-docs-pdf",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Builds docs/*.md into a single ordered PDF. Not part of the app - dev tooling only.",
+  "scripts": {
+    "build": "node generate.js"
+  },
+  "dependencies": {
+    "marked": "^12.0.2"
+  }
+}
