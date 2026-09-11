@@ -71,12 +71,22 @@ After each phase:
 * Python
 * FastAPI
 * Pydantic
-* SQLAlchemy 2.x
+* psycopg 3
 * Alembic
 
 ## Database
 
 * PostgreSQL
+* psycopg 3
+* Raw SQL
+* Alembic migrations
+* No SQLAlchemy
+* No ORM
+
+Migrations are the source of truth for the schema. Alembic's own migration
+runner depends on SQLAlchemy internally (that is Alembic's dependency, not
+this application's) — the application itself never imports SQLAlchemy: no
+models, no ORM, no sessions, no app-level engine.
 
 ## Authentication
 
@@ -191,8 +201,7 @@ homeready-ai/
 │   │   │   └── logging.py
 │   │   │
 │   │   ├── db/
-│   │   │   ├── session.py
-│   │   │   └── base.py
+│   │   │   └── connection.py
 │   │   │
 │   │   ├── models/
 │   │   │

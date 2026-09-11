@@ -17,7 +17,7 @@ foundation only. No application features are implemented yet.
 ## Technology Stack
 
 - **Frontend:** Next.js, TypeScript, React, Tailwind CSS
-- **Backend:** Python, FastAPI, Pydantic, SQLAlchemy 2.x, Alembic
+- **Backend:** Python, FastAPI, Pydantic, psycopg 3 (raw SQL, no ORM), Alembic
 - **Database:** PostgreSQL
 - **Auth (planned):** Argon2id password hashing, short-lived access tokens,
   rotating refresh tokens
@@ -52,7 +52,7 @@ security requirements driving this project.
 │   │   ├── main.py
 │   │   ├── api/            # Routes and request dependencies
 │   │   ├── core/           # Config, logging
-│   │   ├── db/             # SQLAlchemy engine/session, declarative base
+│   │   ├── db/              # psycopg connection pool (raw SQL, no ORM)
 │   │   ├── models/         # ORM models (added in later phases)
 │   │   ├── schemas/        # Pydantic schemas (added in later phases)
 │   │   ├── services/       # Business logic (added in later phases)
