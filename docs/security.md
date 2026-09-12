@@ -101,11 +101,15 @@ only IDs, actions, and non-sensitive metadata.
 
 - `.env` is gitignored; `.env.example` carries variable names and
   placeholders only, never a real value.
-- `JWT_SECRET`, `AI_API_KEY`, and the database connection string are
-  read from environment variables at runtime, never hard-coded.
-- No AWS credentials are ever sent to the browser (document upload isn't
-  implemented yet, but this constraint already applies to every other
-  provider secret in the app today).
+- `JWT_SECRET`, `AI_API_KEY` (when using the direct Anthropic provider),
+  and the database connection string are read from environment variables
+  at runtime, never hard-coded.
+- AWS credentials for the Bedrock AI provider are never an application
+  setting at all - they're resolved by boto3's own credential chain
+  (environment variables or an IAM role), so there's no AWS secret in
+  this app's config, logs, or code to leak in the first place (see
+  `docs/ai-architecture.md`).
+- No AWS credentials are ever sent to the browser.
 
 ## What's not implemented yet
 
@@ -122,6 +126,4 @@ exists:
   limiter today (`docs/ai-architecture.md`), and it's in-process, not
   distributed - fine for a single backend instance, not yet sufficient
   for a multi-instance deployment.
-- **RBAC roles beyond USER/ADMIN/SUPPORT**: `REALTOR` exists as a role
-  with no permissions granted yet (see `docs/authorization.md`), and
-  `SUPER_ADMIN` doesn't exist at all.
+- **`SUPER_ADMIN`**: doesn't exist as a role at all yet.

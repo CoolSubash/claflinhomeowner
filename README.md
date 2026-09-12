@@ -20,14 +20,18 @@ requirements rather than afterthoughts.
 - Assessments: create, edit, submit, and a deterministic, versioned
   readiness-scoring engine
 - Results, history, and a deterministic rule-based recommendation engine
-- An AI chat assistant that explains a user's results (never calculates
-  or changes them)
+- An AI chat assistant (Claude via AWS Bedrock, or direct Anthropic) that
+  explains a user's results (never calculates or changes them)
+- Invite-only realtor onboarding, an admin dashboard (manage users, vet
+  and onboard realtors), and a realtor dashboard (respond to connection
+  requests) - see `docs/realtor-onboarding.md`
 - A full frontend for every feature above (dashboard, assessments,
-  results, history, chat, profile)
+  results, history, chat, profile, admin, realtor)
 
 **Not yet implemented:** document upload/storage (S3/KMS - schema
-exists, no upload code), real-estate professional connections, an admin
-dashboard, and production deployment (see `docs/deployment.md`).
+exists, no upload code), a homebuyer-facing "request a realtor
+connection" flow (the realtor side is built; nothing creates the request
+yet), and production deployment (see `docs/deployment.md`).
 
 ## Documentation
 
@@ -52,9 +56,10 @@ The documentation can also be built into a single PDF - see
 - **Database:** PostgreSQL
 - **Auth:** Argon2id password hashing, short-lived JWT access tokens,
   rotating refresh tokens, mandatory email verification (`docs/authentication.md`)
-- **AI:** Provider-agnostic `AIService` abstraction (Anthropic today) for
-  explanation and conversation — not the source of truth for readiness
-  scores (`docs/ai-architecture.md`)
+- **AI:** Provider-agnostic `AIService` abstraction — Claude via AWS
+  Bedrock by default, or the direct Anthropic API — for explanation and
+  conversation, never the source of truth for readiness scores
+  (`docs/ai-architecture.md`)
 - **Storage (planned):** Private AWS S3 with AWS KMS, short-lived presigned URLs
 - **Deployment:** Vercel (frontend), Render (backend) — see `docs/deployment.md`
 

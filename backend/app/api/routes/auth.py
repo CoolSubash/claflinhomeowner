@@ -13,8 +13,9 @@ from app.schemas.auth import (
     TokenResponse,
     VerifyEmailRequest,
 )
-from app.schemas.users import UserPublic
+from app.schemas.users import UserPublic, UserWithRoles
 from app.services import auth_service, email_verification
+from app.services.authorization import get_user_roles_and_permissions
 from app.services.email.base import EmailService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -138,6 +139,14 @@ def logout(data: LogoutRequest, request: Request, conn: Connection = Depends(get
     )
 
 
-@router.get("/me", response_model=UserPublic)
-def read_current_user(current_user: UserPublic = Depends(get_current_user)) -> UserPublic:
-    return current_user
+@router.get("/me", response_model=UserWithRoles)
+def read_current_user(
+    current_user: UserPublic = Depends(get_current_user),
+    conn: Connection = Depends(get_db),
+) -> UserWithRoles:
+    # Roles only, not permissions - the frontend uses this purely to decide
+    # what navigation to show (docs/authorization.md); every real
+    # authorization decision is still re-checked on the backend regardless
+    # of what this response says.
+    roles, _permissions = get_user_roles_and_permissions(conn, current_user.id)
+    return UserWithRoles(**current_user.model_dump(), roles=sorted(roles))

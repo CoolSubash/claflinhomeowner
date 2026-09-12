@@ -54,9 +54,9 @@ Managed PostgreSQL (Render Postgres, RDS, Supabase, etc.)
 
 **Frontend → Vercel.** A standard Next.js deployment: connect the repo,
 set the root directory to `frontend/`, and set `BACKEND_INTERNAL_URL` to
-the backend's public Render URL. `NEXT_PUBLIC_API_URL` stays unused
-(unset or empty) - the frontend never calls the backend from the browser,
-only from its own server-side Route Handlers (see `docs/architecture.md`).
+the backend's public Render URL. There is no browser-facing API URL to
+configure - the frontend never calls the backend from the browser, only
+from its own server-side Route Handlers (see `docs/architecture.md`).
 
 **Backend → Render.** A Render web service built from `backend/`, using
 a production-appropriate start command rather than the dev Dockerfile's
@@ -82,12 +82,23 @@ that matter for a production deploy specifically:
 | `JWT_SECRET` | Long, random, generated fresh for production - never the same value used locally |
 | `REFRESH_TOKEN_EXPIRE_DAYS`, `ACCESS_TOKEN_EXPIRE_MINUTES` | Defaults (30 days / 15 minutes) are reasonable starting points |
 | `FRONTEND_BASE_URL` | The real Vercel URL - used to build email verification links |
-| `AI_API_KEY`, `AI_PROVIDER`, `AI_MODEL` | Set to enable the AI assistant; the app runs fine without it (see `docs/ai-architecture.md`) |
-| `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_KMS_KEY_ID` | Not yet used by any implemented feature - reserved for document upload |
+| `AI_PROVIDER`, `AI_MODEL` | Set to enable the AI assistant; the app runs fine without either configured (see `docs/ai-architecture.md`) |
+| `AI_API_KEY` | Only needed when `AI_PROVIDER=anthropic`; ignored for `AI_PROVIDER=bedrock` |
+| `AWS_REGION` | Needed when `AI_PROVIDER=bedrock`; AWS credentials themselves are never a `.env` value - see below |
+| `AWS_S3_BUCKET`, `AWS_KMS_KEY_ID` | Not yet used by any implemented feature - reserved for document upload |
 | `BACKEND_INTERNAL_URL` (frontend) | The backend's Render URL, set in Vercel's project settings |
 
 None of these belong in the repository. `.env` is gitignored;
 `.env.example` carries names and placeholders only.
+
+**AWS credentials for Bedrock** are never an application setting at all -
+`boto3` (via the Bedrock AI provider, `docs/ai-architecture.md`) resolves
+them from the environment or an IAM role on its own. On Render, that
+means either setting `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` as
+platform environment variables (never in `.env` or the repo) scoped to a
+least-privilege IAM user with only `bedrock:InvokeModel`, or - preferably,
+once the hosting platform supports it - attaching an IAM role to the
+running service so there's no long-lived key to leak at all.
 
 ## Migrations
 

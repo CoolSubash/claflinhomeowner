@@ -24,3 +24,6 @@ class ConsoleEmailService(EmailService):
             first_name,
             verification_url,
         )
+
+    def send_realtor_invite_email(self, *, to_email: str, invite_url: str) -> None:
+        logger.info("Realtor invitation for %s: %s", to_email, invite_url)

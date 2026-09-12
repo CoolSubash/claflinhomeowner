@@ -127,6 +127,7 @@ SUPPORT
 
 REALTOR
     testimonial:create
+    connection:respond:own
 ```
 
 Design notes:
@@ -145,31 +146,22 @@ Design notes:
   workflow genuinely needs to view assessment data, that should be a new,
   explicit permission grant with its own audit trail - not a byproduct of
   broadening `user:read:any`.
-- **REALTOR currently has one permission: `testimonial:create`.** It still
-  cannot see connection requests, assessments, or any user's data. The
-  intent is for REALTOR to eventually see connection requests that have
-  been shared with it, but the schema has no link between
-  `real_estate_partners` and a user account yet - there's no column or
-  table saying "this REALTOR user corresponds to this
-  `real_estate_partners` row." Granting a `connection:read:*`-style
-  permission without that link would either do nothing or (if implemented
-  carelessly) let any REALTOR see every connection request, which is
-  exactly what per-resource ownership is meant to prevent. That link, and
-  the permission it enables, belongs to whichever future change
-  implements the real-estate connection workflow.
-- **The REALTOR *role itself* is never self-service.** Registration
+- **REALTOR has two permissions: `testimonial:create` and
+  `connection:respond:own`.** `real_estate_partners.user_id` now links a
+  partner record to the account onboarded to it (see
+  `docs/realtor-onboarding.md`), which is what makes
+  `connection:respond:own` safe to grant: ownership for that permission
+  is checked against *that specific link*, not a blanket "REALTOR sees
+  everything" grant - a realtor still can't see any other realtor's
+  connection requests, any assessment, or any other user's data.
+- **The REALTOR *role itself* is still never self-service.** Registration
   (`auth_service.register_user`) hard-codes the `USER` role lookup - there
   is no "sign up as a realtor" option anywhere in the API, and no endpoint
-  lets a user grant themselves or anyone else a role. A prospective
-  real-estate partner is expected to submit their company information
-  through a future application flow; a human admin reviews it and only
-  then runs the `role_permissions`/`user_roles` grant directly. Until that
-  review happens, the account has no REALTOR-only capability to reach -
-  there isn't one yet beyond `testimonial:create`, which is intentionally
-  also available to plain `USER` accounts and carries no elevated access.
-  This is a product/security decision, not just an implementation detail:
-  an unreviewed account must never be able to act as a real-estate
-  professional inside the platform.
+  lets a user grant themselves a role. The only way to become a REALTOR is
+  redeeming an invitation an admin created for an already-vetted partner
+  record (`docs/realtor-onboarding.md`) - vetting itself happens entirely
+  outside this application. An unreviewed account can never reach
+  REALTOR-only capability.
 
 Permission names use a `resource:action[:scope]` convention
 (`assessment:read:own` vs. `assessment:read:any`) so that "read your own"
@@ -206,7 +198,8 @@ in the schema:
 | `readiness_results` | `user_id` (denormalized from `assessments`) |
 | `score_breakdowns` | `user_id` (denormalized from `readiness_results → assessments`) |
 | `recommendations` | `user_id` (denormalized from `readiness_results → assessments`) |
-| `connection_requests` | `user_id` |
+| `connection_requests` (homebuyer side) | `user_id` |
+| `connection_requests` (realtor side) | `partner_id`, resolved via `real_estate_partners.user_id` - see `docs/realtor-onboarding.md` |
 
 `readiness_results`, `score_breakdowns`, `recommendations`, and
 `chat_messages` are reachable from `users` via a foreign-key chain

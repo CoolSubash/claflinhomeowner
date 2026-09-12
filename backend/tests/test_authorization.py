@@ -45,7 +45,7 @@ USER_PERMISSIONS = {
     "testimonial:create",
 }
 
-REALTOR_PERMISSIONS = {"testimonial:create"}
+REALTOR_PERMISSIONS = {"testimonial:create", "connection:respond:own"}
 
 ADMIN_PERMISSIONS = {
     "assessment:read:any",
@@ -128,12 +128,11 @@ def test_support_role_has_only_expected_permissions() -> None:
     assert "assessment:read:any" not in permissions
 
 
-def test_realtor_role_has_only_testimonial_create() -> None:
-    # REALTOR can submit a testimonial about the platform (same as USER),
-    # but still has none of the connection-workflow permissions - see
-    # docs/authorization.md: that needs a realtor-facing permission that
-    # doesn't exist until real_estate_partners is linked to a user account,
-    # a future phase's decision, not this one.
+def test_realtor_role_has_only_testimonial_create_and_connection_respond() -> None:
+    # REALTOR can submit a testimonial about the platform (same as USER)
+    # and respond to connection requests addressed to its linked partner
+    # record - nothing else (see docs/authorization.md and
+    # docs/realtor-onboarding.md).
     with get_connection() as conn:
         user_id = _create_user(conn, roles=["REALTOR"])
         try:
@@ -270,12 +269,10 @@ def test_multiple_roles_effective_permissions_are_union() -> None:
     assert permissions == USER_PERMISSIONS | {"user:read:any"}
 
 
-def test_user_and_realtor_roles_union_matches_user_alone() -> None:
-    # Mirrors the RBAC-spec's own multi-role example (USER + REALTOR).
-    # REALTOR's only permission (testimonial:create) is a strict subset of
-    # USER's, so the union still equals USER_PERMISSIONS - a future
-    # REALTOR-only permission grant becomes a deliberate, visible diff here
-    # rather than a silent change.
+def test_user_and_realtor_roles_union_adds_connection_respond_own() -> None:
+    # A USER account that's also been onboarded as a REALTOR (the normal
+    # outcome of realtor onboarding, docs/realtor-onboarding.md) gets the
+    # union of both roles' permissions.
     with get_connection() as conn:
         user_id = _create_user(conn, roles=["USER", "REALTOR"])
         try:
@@ -283,7 +280,7 @@ def test_user_and_realtor_roles_union_matches_user_alone() -> None:
         finally:
             _cleanup_user(conn, user_id)
     assert roles == {"USER", "REALTOR"}
-    assert permissions == USER_PERMISSIONS
+    assert permissions == USER_PERMISSIONS | {"connection:respond:own"}
 
 
 # --- Ownership + IDOR tests --------------------------------------------------

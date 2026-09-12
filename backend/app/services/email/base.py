@@ -14,3 +14,7 @@ class EmailService(ABC):
     @abstractmethod
     def send_verification_email(self, *, to_email: str, first_name: str, verification_url: str) -> None:
         raise NotImplementedError
+
+    @abstractmethod
+    def send_realtor_invite_email(self, *, to_email: str, invite_url: str) -> None:
+        raise NotImplementedError

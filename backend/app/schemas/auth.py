@@ -1,20 +1,7 @@
-import re
-
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-
-def _normalize_email(value: str) -> str:
-    return value.strip().lower()
-
-
-def _validate_strong_password(value: str) -> str:
-    if len(value) < 8:
-        raise ValueError("Password must be at least 8 characters long")
-    if not re.search(r"[A-Za-z]", value):
-        raise ValueError("Password must contain at least one letter")
-    if not re.search(r"[0-9]", value):
-        raise ValueError("Password must contain at least one digit")
-    return value
+from app.schemas.validation import normalize_email as _normalize_email
+from app.schemas.validation import validate_strong_password as _validate_strong_password
 
 
 class RegisterRequest(BaseModel):

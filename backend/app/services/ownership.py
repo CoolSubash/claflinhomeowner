@@ -165,12 +165,7 @@ def get_owned_recommendation(conn: Connection, recommendation_id: UUID, user_id:
 
 
 def get_owned_connection_request(conn: Connection, request_id: UUID, user_id: UUID) -> dict | None:
-    """
-    The requesting user's own view of a connection request. There is no
-    REALTOR-facing equivalent yet: `real_estate_partners` has no link to a
-    user account in the current schema, so a REALTOR cannot yet be
-    authorized to view requests addressed to them. See docs/authorization.md.
-    """
+    """The requesting user's own view of a connection request."""
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             """
@@ -179,5 +174,25 @@ def get_owned_connection_request(conn: Connection, request_id: UUID, user_id: UU
             WHERE id = %s AND user_id = %s
             """,
             (request_id, user_id),
+        )
+        return cur.fetchone()
+
+
+def get_partner_owned_connection_request(conn: Connection, request_id: UUID, partner_id: UUID) -> dict | None:
+    """
+    The realtor-side equivalent of get_owned_connection_request - ownership
+    here means "addressed to my linked real_estate_partners row", not a
+    user_id column. Callers resolve partner_id via
+    realtor_partners.get_partner_by_user_id first (see docs/authorization.md);
+    this function never trusts a client-supplied partner_id on its own.
+    """
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            SELECT id, user_id, partner_id, status, consent_given_at, created_at, updated_at
+            FROM connection_requests
+            WHERE id = %s AND partner_id = %s
+            """,
+            (request_id, partner_id),
         )
         return cur.fetchone()

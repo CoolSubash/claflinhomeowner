@@ -6,6 +6,9 @@ export interface User {
   is_active: boolean;
   email_verified: boolean;
   created_at: string;
+  // Presentational only - which nav links to show. Every real
+  // authorization decision is still re-checked on the backend.
+  roles: string[];
 }
 
 export interface AuthSession {
@@ -81,6 +84,30 @@ export interface Recommendation {
   description: string;
   source: string;
   created_at: string;
+}
+
+export interface RealEstatePartner {
+  id: string;
+  name: string;
+  contact_email: string | null;
+  contact_phone: string | null;
+  is_active: boolean;
+  user_id: string | null;
+  created_at: string;
+}
+
+export interface ConnectionRequestForRealtor {
+  id: string;
+  status: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+  requester_name: string;
+  consent_given_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RealtorInviteLookup {
+  email: string;
+  account_exists: boolean;
 }
 
 export interface ChatSession {

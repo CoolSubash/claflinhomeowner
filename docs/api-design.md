@@ -14,6 +14,7 @@ unversioned API surface.
 **Authentication**: every endpoint except `POST /auth/register`,
 `POST /auth/login`, `POST /auth/verify-email`,
 `POST /auth/resend-verification`, `POST /auth/refresh`,
+`POST /realtor-invitations/lookup`, `POST /realtor-invitations/accept`,
 `GET /health`, and `GET /testimonials/featured` requires
 `Authorization: Bearer <access_token>`. A missing or invalid token
 returns `401`.
@@ -76,7 +77,7 @@ and `docs/recommendations.md`).
 | POST | `/resend-verification` | none | Re-send the verification link; always `204`, never reveals whether the email exists |
 | POST | `/refresh` | refresh token in body | Rotate a refresh token for a new access + refresh token pair |
 | POST | `/logout` | refresh token in body | Revoke a refresh token; always `204` |
-| GET | `/me` | bearer | The current user's own account record |
+| GET | `/me` | bearer | The current user's own account record, plus `roles` (presentational - which nav to show, not an authorization decision) |
 
 ### Users (`/api/v1/users`)
 
@@ -103,6 +104,29 @@ and `docs/recommendations.md`).
 | GET | `` | `assessment:read:own` | The caller's full scoring history, newest first, paginated |
 | GET | `/{id}/recommendations` | `assessment:read:own` | Deterministic recommendations for one result (generated on first call, idempotent) |
 
+### Admin (`/api/v1/admin`) - `docs/realtor-onboarding.md`
+
+| Method | Path | Permission | Purpose |
+|---|---|---|---|
+| GET | `/users` | `user:read:any` | List every account and its roles |
+| POST | `/realtor-partners` | `partner:manage` | Create a vetted `real_estate_partners` record |
+| GET | `/realtor-partners` | `partner:manage` | List partners + onboarding status |
+| POST | `/realtor-partners/{id}/invite` | `partner:manage` | Issue + send a realtor invitation |
+
+### Realtor invitations (`/api/v1/realtor-invitations`) - `docs/realtor-onboarding.md`
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| POST | `/lookup` | none | Validate a token without consuming it |
+| POST | `/accept` | none | Redeem a token: onboard a new account or add REALTOR to an existing one |
+
+### Realtor (`/api/v1/realtor`) - `docs/realtor-onboarding.md`
+
+| Method | Path | Permission | Purpose |
+|---|---|---|---|
+| GET | `/connection-requests` | `connection:respond:own` | Requests addressed to the caller's linked partner record |
+| POST | `/connection-requests/{id}/respond` | `connection:respond:own` | Accept/decline one |
+
 ### Chat (`/api/v1/chat`) - `docs/ai-architecture.md`
 
 | Method | Path | Permission | Purpose |
@@ -127,9 +151,11 @@ and `docs/recommendations.md`).
 
 ## What's intentionally not exposed yet
 
-No endpoint exists for: deleting an assessment, an admin "read any user's
-data" surface (the `assessment:read:any` / `user:read:any` permissions
-are seeded but nothing uses them yet), document upload, or real-estate
-partner connections. Adding any of these means adding both the route and
-its permission/ownership checks together - never a route first with
-authorization "to follow."
+No endpoint exists for: deleting an assessment, an admin "read any
+assessment" surface (`assessment:read:any` is seeded but nothing uses it
+yet - `user:read:any` now does, via `GET /admin/users`), document upload,
+or a homebuyer actually creating a connection request (`connection:create`
+is seeded and granted to `USER`, but nothing calls it - see
+`docs/realtor-onboarding.md`). Adding any of these means adding both the
+route and its permission/ownership checks together - never a route first
+with authorization "to follow."

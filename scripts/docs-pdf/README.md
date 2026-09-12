@@ -1,8 +1,9 @@
 # docs-pdf
 
-Builds every file in `docs/` into a single ordered PDF. Dev tooling only -
-not part of the deployed app, not a runtime dependency of the backend or
-frontend.
+Builds every file in `docs/` into designed PDFs: one PDF per document
+(numbered so they sort in reading order), plus one combined PDF with a
+cover page and table of contents. Dev tooling only - not part of the
+deployed app, not a runtime dependency of the backend or frontend.
 
 ## Usage
 
@@ -12,21 +13,40 @@ npm install
 npm run build
 ```
 
-Output: `docs/_build/HomeReady-AI-Documentation.pdf` (and the intermediate
-`full-documentation.html`, useful if you want to print/inspect it
-directly). Both are gitignored - they're generated from the Markdown
-files, which stay the single source of truth.
+Output, all in `docs/_build/` (gitignored - generated from the Markdown
+files, which stay the single source of truth):
+
+```
+00-HomeReady-AI-Documentation-Complete.pdf   # everything, one file
+01-architecture.pdf
+02-database.pdf
+03-authentication.pdf
+04-authorization.pdf
+05-api-design.pdf
+06-assessments.pdf
+07-scoring-methodology.pdf
+08-scoring-v1.pdf
+09-results.pdf
+10-recommendations.pdf
+11-ai-architecture.pdf
+12-security.pdf
+13-threat-model.pdf
+14-deployment.pdf
+```
+
+Every PDF has: a title cover page (section label, doc title, "Prepared by
+Subash Neupane", generation date), a running header (`HomeReady AI · <doc
+title>`), and a footer with the same attribution plus page numbers.
 
 ## Requirements
 
 - Node.js (already required for the frontend)
 - A locally installed Google Chrome, Chromium, or Microsoft Edge
 
-No Puppeteer/Playwright dependency is installed for this - the script
-shells out to your existing browser's own `--headless --print-to-pdf`
-flag, which does the whole HTML-to-PDF conversion without downloading a
-second copy of Chromium. If it can't find your browser automatically, set
-`CHROME_PATH` to the binary:
+This uses `playwright-core` (not the full `playwright` package) purely as
+a driver for your own installed browser - it has no bundled Chromium and
+downloads nothing at `npm install`. If it can't find your browser
+automatically, set `CHROME_PATH` to the binary:
 
 ```bash
 CHROME_PATH="/path/to/chrome" npm run build
@@ -34,18 +54,22 @@ CHROME_PATH="/path/to/chrome" npm run build
 
 ## How it works
 
-`generate.js` reads the same ordered list of documents as
-`docs/README.md` (kept in sync by hand - update both together when a doc
-is added, removed, or reordered), concatenates them into one HTML file
-with a cover page and table of contents, rewrites cross-doc Markdown
-links (`docs/database.md` → `#database`) into in-page anchors so they
-still work once everything is one file, and then runs:
+`generate.js` keeps the same ordered list of documents as `docs/README.md`
+(kept in sync by hand - update both together when a doc is added,
+removed, or reordered). For each one it renders a styled HTML page (cover
++ Markdown content, via `marked`) and calls Chromium's `page.pdf()` with
+`headerTemplate`/`footerTemplate` for the running header, footer, and
+page numbers - that template support is why this uses a real browser
+driver instead of the plain `chrome --print-to-pdf` CLI flag, which can't
+render custom headers/footers.
 
-```bash
-chrome --headless --disable-gpu --print-to-pdf=<output> <the html file>
-```
+A cross-reference to another doc (`docs/database.md` in the Markdown) is
+rewritten differently depending on which build it ends up in: inside the
+combined PDF it becomes an in-page jump (`#database`); inside a
+standalone per-doc PDF it becomes a link to that doc's own numbered PDF
+filename (`02-database.pdf`), since there's no shared page to jump to.
 
-If you'd rather generate the PDF a different way (pandoc, a CI-hosted
-renderer, etc.), `full-documentation.html` in `docs/_build/` after
-`npm run build` is a plain, already-assembled HTML file you can feed to
-anything else that prints HTML to PDF.
+To change the design (colors, fonts, cover layout), edit the CSS in
+`baseStyles()`/`coverStyles()`/`headerTemplate()`/`footerTemplate()` in
+`generate.js` - everything is inline, no separate stylesheet to keep in
+sync.

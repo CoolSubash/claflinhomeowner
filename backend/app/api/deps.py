@@ -12,6 +12,7 @@ from app.schemas.users import UserPublic
 from app.security.tokens import TokenError, decode_access_token
 from app.services.ai.anthropic_provider import AnthropicAIService
 from app.services.ai.base import AIProviderNotConfigured, AIService
+from app.services.ai.bedrock_provider import BedrockAIService
 from app.services.audit import log_event
 from app.services.auth_service import get_user_by_id
 from app.services.authorization import get_user_roles_and_permissions
@@ -120,9 +121,11 @@ def require_permission(
 
 class _UnconfiguredAIService(AIService):
     """
-    Used when no AI provider is configured (AI_API_KEY unset). Lets the
-    rest of the app - and its test suite - run with no key at all; a chat
-    request fails with a clear, specific error instead of a crash.
+    Used when the selected AI provider has nothing to authenticate with
+    yet (no AI_API_KEY for "anthropic", no AWS_REGION for "bedrock").
+    Lets the rest of the app - and its test suite - run with no
+    credentials configured at all; a chat request fails with a clear,
+    specific error instead of a crash.
     """
 
     def generate_response(self, **_kwargs: object) -> str:
@@ -136,10 +139,20 @@ def get_ai_service() -> AIService:
     tests override it with app.dependency_overrides[get_ai_service].
     """
     settings = get_settings()
-    if not settings.ai_api_key:
-        return _UnconfiguredAIService()
+
+    if settings.ai_provider == "bedrock":
+        # No access key/secret here, ever - BedrockAIService relies on
+        # boto3's own credential chain (env vars or an IAM role). Region
+        # is the only thing this app's own config needs to supply.
+        if not settings.aws_region:
+            return _UnconfiguredAIService()
+        return BedrockAIService(aws_region=settings.aws_region, model=settings.ai_model)
+
     if settings.ai_provider == "anthropic":
+        if not settings.ai_api_key:
+            return _UnconfiguredAIService()
         return AnthropicAIService(api_key=settings.ai_api_key, model=settings.ai_model)
+
     raise RuntimeError(f"Unsupported AI_PROVIDER: {settings.ai_provider!r}")
 
 

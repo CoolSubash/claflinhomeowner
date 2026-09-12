@@ -27,27 +27,57 @@ from this module - never a provider SDK. Swapping or adding a provider
 means adding a class under `app/services/ai/` and updating
 `app/api/deps.py::get_ai_service`; nothing else in the app changes.
 
-## Provider configuration
+## Providers
+
+Two implementations exist today, both wrapping the same underlying
+Claude model family via the `anthropic` Python SDK's two client classes:
+
+| Provider | Class | Auth |
+|---|---|---|
+| `bedrock` (default) | `app/services/ai/bedrock_provider.py::BedrockAIService` | AWS SigV4 via boto3's own credential chain - no API key |
+| `anthropic` | `app/services/ai/anthropic_provider.py::AnthropicAIService` | `AI_API_KEY`, sent directly to the Anthropic API |
+
+Response validation (`extract_text` - shape/emptiness/length checks) is
+shared between them in `app/services/ai/anthropic_common.py`, since both
+return the identical Anthropic Messages API response type.
 
 ```
-AI_PROVIDER=anthropic   # only supported value today
-AI_API_KEY=             # empty by default - see "Unconfigured" below
-AI_MODEL=claude-3-5-sonnet-latest
+AI_PROVIDER=bedrock
+AWS_REGION=                                          # required for bedrock
+AI_MODEL=anthropic.claude-3-5-sonnet-20241022-v2:0   # Bedrock model id
+
+# or:
+AI_PROVIDER=anthropic
+AI_API_KEY=                                          # required for anthropic
+AI_MODEL=claude-3-5-sonnet-latest                    # direct-API model alias
 ```
 
 Read via `app/core/config.py::Settings` (the existing pydantic-settings
-config, not a new mechanism). The key is never sent to, or readable by,
-the frontend - `app/services/ai/anthropic_provider.py` is backend-only,
-and no route ever returns it.
+config, not a new mechanism). Neither an Anthropic API key nor an AWS
+credential is ever sent to, or readable by, the frontend - both provider
+classes are backend-only, and no route ever returns either.
+
+### Why Bedrock never sees an AWS credential in this codebase
+
+`BedrockAIService` constructs `AnthropicBedrock(aws_region=...)` and
+nothing else - no access key, secret key, or session token is ever
+passed in, read from `Settings`, or stored on the class. Authentication
+is AWS SigV4 request signing, and the signing step (inside the
+`anthropic` SDK, via `boto3`) resolves credentials from the standard AWS
+chain: environment variables, a shared credentials file, or - in
+production - an IAM role attached to the compute the backend runs on.
+This means there is no AWS secret anywhere in this application's own
+config, logs, or code for a leak to expose in the first place.
 
 ### Unconfigured behavior
 
-`get_ai_service()` (`app/api/deps.py`) returns an `AnthropicAIService`
-when `AI_API_KEY` is set, or a small `_UnconfiguredAIService` otherwise,
+`get_ai_service()` (`app/api/deps.py`) checks whichever provider is
+selected has what it needs - `AWS_REGION` for `bedrock`, `AI_API_KEY` for
+`anthropic` - and falls back to a small `_UnconfiguredAIService` if not,
 whose `generate_response` raises `AIProviderNotConfigured`. The chat
 route turns that into `503 The AI assistant isn't configured on this
 server yet` rather than crashing - the whole application, including its
-test suite, runs correctly with no key at all.
+test suite, runs correctly with nothing configured at all.
 
 ## Context construction / data minimization
 

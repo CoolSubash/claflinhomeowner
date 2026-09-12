@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { CloseIcon, MenuIcon, Spinner } from "@/components/icons";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useAuth } from "@/hooks/use-auth";
 
 const PUBLIC_LINKS = [
@@ -21,6 +22,13 @@ const APP_LINKS = [
   { href: "/profile", label: "Profile" },
 ];
 
+function appLinksFor(roles: string[]): { href: string; label: string }[] {
+  const links = [...APP_LINKS];
+  if (roles.includes("REALTOR")) links.push({ href: "/realtor", label: "Realtor" });
+  if (roles.includes("ADMIN")) links.push({ href: "/admin", label: "Admin" });
+  return links;
+}
+
 function initials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
@@ -33,7 +41,7 @@ export function Navbar() {
   const [signingOut, setSigningOut] = useState(false);
 
   const authenticated = status === "authenticated";
-  const links = authenticated ? APP_LINKS : PUBLIC_LINKS;
+  const links = authenticated ? appLinksFor(user?.roles ?? []) : PUBLIC_LINKS;
   const homeHref = authenticated ? "/dashboard" : "/";
 
   const handleLogout = async () => {
@@ -115,15 +123,18 @@ export function Navbar() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMobileOpen((open) => !open)}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileOpen}
-          className="inline-flex items-center justify-center rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900 sm:hidden"
-        >
-          {mobileOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900 sm:hidden"
+          >
+            {mobileOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+          </button>
+        </div>
       </nav>
 
       {mobileOpen && (

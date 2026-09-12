@@ -311,13 +311,6 @@ FRONTEND_BASE_URL              # default http://localhost:3000 - only used to bu
                                 # security decision
 ```
 
-`REFRESH_TOKEN_SECRET` (present in `.env.example`) is currently unused:
-refresh tokens in this design are opaque random values validated by a
-database lookup of their hash, not signed tokens, so there's no secret
-key involved in issuing or verifying them. It's left in place rather than
-removed, in case something else needs it later (e.g. signing a different
-kind of token) — but it plays no role in the current flow.
-
 ## Security summary
 
 * **Passwords:** Argon2id only (`argon2-cffi`), never logged, never

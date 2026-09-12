@@ -99,7 +99,8 @@ has a full API and UI built on top of it yet.
 | `recommendations` | Fully implemented (schema + deterministic rule engine + API; idempotency index added by `484310a89338`) | `6d6a93a0acc1_create_recommendations_table.py` |
 | `chat_sessions`, `chat_messages` | Fully implemented (schema + AI chat service/API/UI) | `2c200096d5cb_create_chat_tables.py` |
 | `files`, `file_extractions` | Schema only — no upload/processing code yet | `5a539c7a2e33_create_files_tables.py` |
-| `real_estate_partners`, `connection_requests` | Schema only — no connection workflow yet | `3f83a149589a_create_real_estate_tables.py` |
+| `real_estate_partners`, `realtor_invitations` | Fully implemented (onboarding API/UI - `docs/realtor-onboarding.md`; `user_id` link + invitations table added by `189078b0fd76`) | `3f83a149589a_create_real_estate_tables.py` |
+| `connection_requests` | Realtor-side read/respond implemented; no homebuyer-side create endpoint yet | `3f83a149589a_create_real_estate_tables.py` |
 | `audit_logs` | Fully implemented | `59cb86819d86_create_audit_logs_table.py` |
 | `testimonials` | Fully implemented (schema + API + homepage UI) | `5e5ad50add74_create_testimonials_table_and_permission.py` |
 
@@ -127,10 +128,12 @@ users ──< user_roles >── roles ──< role_permissions >── permissi
   ├──< chat_sessions ──< chat_messages
   ├──< files ── file_extractions (1:1)
   ├──< connection_requests >── real_estate_partners
+  ├── (real_estate_partners.user_id - one onboarded login per partner)
   ├──< audit_logs
   └──< testimonials
 
 scoring_versions ──< readiness_results   (referenced, never mutated)
+real_estate_partners ──< realtor_invitations
 ```
 
 ## Tables
@@ -414,11 +417,13 @@ processing_status   VARCHAR(20) NOT NULL DEFAULT 'PENDING'
 created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 ```
 
-### `real_estate_partners` / `connection_requests`
+### `real_estate_partners` / `connection_requests` / `realtor_invitations`
 
-Schema only — no connection workflow exists yet. Designed for an
-optional, explicit-consent connection to a real-estate professional, with
-no financial data shared automatically.
+An optional, explicit-consent connection to a real-estate professional,
+with no financial data shared automatically. Onboarding a realtor
+(`docs/realtor-onboarding.md`) is implemented; a homebuyer actually
+*creating* a `connection_requests` row is not (see that doc's "What's not
+built yet").
 
 ```text
 real_estate_partners
@@ -428,6 +433,7 @@ name            VARCHAR(200) NOT NULL
 contact_email   VARCHAR(320)
 contact_phone   VARCHAR(30)
 is_active       BOOLEAN NOT NULL DEFAULT true
+user_id         UUID REFERENCES users(id) ON DELETE SET NULL   -- the onboarded login, once one exists
 created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 
 connection_requests
@@ -440,7 +446,23 @@ status              VARCHAR(20) NOT NULL DEFAULT 'PENDING'
 consent_given_at    TIMESTAMPTZ NOT NULL   -- explicit consent record, required
 created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+
+realtor_invitations
+----------------------
+id            UUID PK
+partner_id    UUID NOT NULL REFERENCES real_estate_partners(id) ON DELETE CASCADE
+email         VARCHAR(320) NOT NULL
+token_hash    VARCHAR(64) NOT NULL UNIQUE   -- SHA-256 hash only, same design as email_verification_tokens
+invited_by    UUID REFERENCES users(id) ON DELETE SET NULL
+expires_at    TIMESTAMPTZ NOT NULL
+used_at       TIMESTAMPTZ                    -- null while unused; single-use once set
+created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 ```
+
+`real_estate_partners.user_id` has a unique index (partial, `WHERE user_id
+IS NOT NULL`) - one login per partner record. `ON DELETE SET NULL`
+rather than `CASCADE`: deleting the onboarded user should never delete
+the vetted partner record itself.
 
 ### `audit_logs`
 
